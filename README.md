@@ -48,7 +48,7 @@ The good news is Async WG is working hard on it these years.
 
 ### Workaround 1: `#[async_trait]`
 
-[`#[async_trait]`](https://docs.rs/async-trait) is the most wildly used approach to get a working async trait object.
+[`#[async_trait]`](https://docs.rs/async-trait) is the most widely used approach to get a working async trait object.
 
 The core idea is that [`BoxFuture`] is a concrete return type which meets one of the requirements in [object safety].[^dyn-trait]
 
@@ -111,7 +111,7 @@ pub async fn call(file: &mut dyn AsyncRead<64>) -> io::Result<usize> {
 
 ## Workaround 3: static dispatch on trait objects
 
-`async-std` crate define an extension trait [`ReadExt`](https://docs.rs/async-std/latest/async_std/io/trait.ReadExt.html#method.read) over [`Read`](https://docs.rs/async-std/latest/async_std/io/trait.Read.html).
+`async-std` crate defines an extension trait [`ReadExt`](https://docs.rs/async-std/latest/async_std/io/trait.ReadExt.html#method.read) over [`Read`](https://docs.rs/async-std/latest/async_std/io/trait.Read.html).
 
 `Read` trait is object safe, thus we can erase types when constructing it.
 
@@ -132,7 +132,7 @@ pub trait /* not object safe */ AsyncRead: Read {
 // Glue code and poll the future to read data:
 impl<T: Read + Unpin + ?Sized> Future for ReadFuture<'_, T> { ... }
 
-// Blanket impl to make async call
+// Blanket impl to make async call.
 impl<T: Read + ?Sized> AsyncRead for T {}
 
 pub async fn call(file: &mut (dyn Read + Unpin)) -> io::Result<usize> {
@@ -143,7 +143,7 @@ pub async fn call(file: &mut (dyn Read + Unpin)) -> io::Result<usize> {
 
 So the pattern is 
 * a Future-API-styled base trait object
-* extension subtrait APIs over the trait object, and a return Future
+* extension subtrait APIs over the trait object, and a return Future (generic but not heap allocated)
 * a blanket impl for the base trait object
 * in the async fn call, statically call extension APIs on the trait object
 
@@ -172,12 +172,10 @@ pub async fn call(file: &mut (dyn Read + Unpin)) -> io::Result<usize> {
 
 ## Workaround 5: `#[dynosaur]`
 
-[`#[dynosaur]`] is a proc macro to generate a dynamic dispatch adaptor type `DynTrait` for the 
-implemented `Trait`.
+[`#[dynosaur]`](https://docs.rs/dynosaur/latest/dynosaur/attr.dynosaur.html) is a proc macro to
+generate a dynamic dispatch adaptor type `DynTrait` for the implemented `Trait`.
 
 You should use the generated type `DynTrait` as `dyn Trait`.
-
-[`#[dynosaur]`]: https://docs.rs/dynosaur/latest/dynosaur/attr.dynosaur.html
 
 ```rust
 #[dynosaur::dynosaur(DynAsyncRead)]
@@ -191,7 +189,12 @@ pub async fn call(file: &mut DynAsyncRead<'_> /* 👈 not dyn AsyncRead */) -> i
 ```
 
 The interesting part on `DynTrait` is the caller can choose creating a boxed erased type or 
-a referenced erased type when instantiating `DynTrait`. See the (partial) macro expansion below:
+a referenced erased type when instantiating `DynTrait`. 
+
+<details>
+
+<summary>Click to see the (partial) macro expansion.</summary>
+
 
 ```rust
 pub trait ErasedAsyncRead {
@@ -256,6 +259,8 @@ impl<'dynosaur_struct> DynAsyncRead<'dynosaur_struct> {
     }
 }
 ```
+
+</details>
 
 Note: this approach means
 * `AsyncRead` we defined is still static dispatchable only
