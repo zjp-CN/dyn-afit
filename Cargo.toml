@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 pollster = "0.3"
+async-trait = "0.1"

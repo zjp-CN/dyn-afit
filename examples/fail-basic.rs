@@ -20,7 +20,7 @@ pub trait AsyncRead {
 }
 
 async fn call(file: &mut dyn AsyncRead) -> io::Result<usize> {
-    file.read(&mut vec![])
+    file.read(&mut vec![]).await
 }
 
 // error[E0038]: the trait `AsyncRead` cannot be made into an object
