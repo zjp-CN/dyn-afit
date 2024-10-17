@@ -92,8 +92,7 @@ pub async fn call(file: &mut dyn AsyncRead) -> io::Result<usize> {
 
 Most stack allocated types in Rust carry a const generic parameter as a maximum allocation size.
 
-It's also interesting to see `StackFuture` can fall back to heap allocation when the the size of `Future` type
-exceeds the const size.
+It's also interesting to see `StackFuture` can fall back to heap allocation when the size of `Future` exceeds the const size.
 
 This is just as simple as `async-trait`, and works well.
 
