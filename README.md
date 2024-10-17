@@ -279,7 +279,19 @@ let mut box_dyn_async_read = DynAsyncRead::boxed(file);
 _ = dbg!(call(&mut box_dyn_async_read).await);
 ```
 
-## Language Designs on this topic
+## Summary
+
+The code is in `examples` folder:
+
+| \# | file name (with ok- prefix stripped)         | is direct dispatchable | no head allocated return value | extra description                                          |
+|:--:|----------------------------------------------|:----------------------:|:------------------------------:|------------------------------------------------------------|
+|  1 | `returns-box-trait-object.rs`                |           ✅           |               ❌               | widely used; simple                                        |
+|  2 | `returns-stack-future.rs`                    |           ✅           |               ✅               | fixed allocation size but heap allocation as a alternative |
+|  3 | `returns-future-in-trait-with-supertrait.rs` |           ❌           |               ✅               | used in `async-std`; the pattern is an inspiration         |
+|  4 | `afit-with-supertrait.rs`                    |           ❌           |               ✅               | takes the inspiration above with AFIT                      |
+|  5 | `dynosaur.rs`                                |           ❌           |               ❌               | promising idea and APIs to support referenced erased types |
+
+## Ongoing Language Designs on this topic
 
 `dyn-star` / `dynx` types:
 
