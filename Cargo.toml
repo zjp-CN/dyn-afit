@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-pollster = "0.3"
+pollster = { version = "0.3", features = ["macro"] }
 async-trait = "0.1"
+stackfuture = "0.3"

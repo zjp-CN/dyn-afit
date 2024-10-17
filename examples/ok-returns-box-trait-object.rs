@@ -1,18 +1,6 @@
-use core::{
-    pin::Pin,
-    task::{Context, Poll},
-};
 use std::io;
 
 fn main() {}
-
-pub trait Read {
-    fn poll_read(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &mut [u8],
-    ) -> Poll<io::Result<usize>>;
-}
 
 #[async_trait::async_trait] // trait object safe
 pub trait AsyncRead {
