@@ -18,8 +18,28 @@ name = "dyn-afit"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "dynosaur",
  "pollster",
  "stackfuture",
+]
+
+[[package]]
+name = "dynosaur"
+version = "0.1.1"
+source = "git+https://github.com/spastorino/dynosaur.git#d98a1d5a6d5119908420b6b8942b6813c2c4090b"
+dependencies = [
+ "dynosaur_derive",
+ "trait-variant",
+]
+
+[[package]]
+name = "dynosaur_derive"
+version = "0.1.1"
+source = "git+https://github.com/spastorino/dynosaur.git#d98a1d5a6d5119908420b6b8942b6813c2c4090b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.79",
 ]
 
 [[package]]
@@ -86,6 +106,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "trait-variant"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70977707304198400eb4835a78f6a9f928bf41bba420deb8fdb175cd965d77a7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.79",
 ]
 
 [[package]]

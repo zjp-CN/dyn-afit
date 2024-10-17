@@ -7,3 +7,4 @@ edition = "2021"
 pollster = { version = "0.3", features = ["macro"] }
 async-trait = "0.1"
 stackfuture = "0.3"
+dynosaur = { git = "https://github.com/spastorino/dynosaur.git" }
