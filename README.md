@@ -283,13 +283,19 @@ _ = dbg!(call(&mut box_dyn_async_read).await);
 
 The code is in `examples` folder:
 
-| \# | file name                                    | is directly dispatchable | no head allocated return value | extra description                                               |
-|:--:|----------------------------------------------|:------------------------:|:------------------------------:|-----------------------------------------------------------------|
-|  1 | `returns-box-trait-object.rs`                |            ✅            |               ❌               | widely used; simple                                             |
-|  2 | `returns-stack-future.rs`                    |            ✅            |               ✅               | simple; fixed allocation size but heap allocation as a fallback |
-|  3 | `returns-future-in-trait-with-supertrait.rs` |            ❌            |               ✅               | used in `async-std`; the pattern is an inspiration              |
-|  4 | `afit-with-supertrait.rs`                    |            ❌            |               ✅               | takes the inspiration above with AFIT                           |
-|  5 | `dynosaur.rs`                                |            ❌            |               ❌               | promising idea and APIs to support referenced erased types      |
+| \# | file name                                      | is directly dispatchable | no head allocated return value | extra description                                               |
+|:--:|------------------------------------------------|:------------------------:|:------------------------------:|-----------------------------------------------------------------|
+|  1 | [`returns-box-trait-object.rs`]                |            ✅            |               ❌               | widely used; simple                                             |
+|  2 | [`returns-stack-future.rs`]                    |            ✅            |               ✅               | simple; fixed allocation size but heap allocation as a fallback |
+|  3 | [`returns-future-in-trait-with-supertrait.rs`] |            ❌            |               ✅               | used in `async-std`; the pattern is an inspiration              |
+|  4 | [`afit-with-supertrait.rs`]                    |            ❌            |               ✅               | takes the inspiration above with AFIT                           |
+|  5 | [`dynosaur.rs`]                                |            ❌            |               ❌               | promising idea and APIs to support referenced erased types      |
+
+[`returns-box-trait-object.rs`]: ./examples/ok-returns-box-trait-object.rs
+[`returns-stack-future.rs`]: ./examples/ok-returns-stack-future.rs
+[`returns-future-in-trait-with-supertrait.rs`]: ./examples/ok-returns-future-in-trait-with-supertrait.rs
+[`afit-with-supertrait.rs`]: ./examples/ok-afit-with-supertrait.rs
+[`dynosaur.rs`]: ./examples/ok-dynosaur.rs
 
 [I made a post about this on URLO.](https://users.rust-lang.org/t/dynamic-dispatch-on-async-fn/119879)
 
