@@ -1,18 +1,23 @@
 use std::io; // pretend a Result is defined somewhere without std
 
 #[pollster::main]
-async fn main() {
+async fn main() -> io::Result<()> {
     let mut file = _impl::File::new();
+
+    // static dispatch: no boxing overhead due to RPITIT
+    dbg!(file.read(&mut []).await?);
 
     // dynamic dispatch: with boxing overhead once (in calling read on DynAsyncRead)
     let dyn_async_read = DynAsyncRead::from_mut(&mut file);
-    _ = dbg!(call(dyn_async_read).await);
+    dbg!(call(dyn_async_read).await?);
 
     // dynamic dispatch: with boxing overhead twice in
     // * creating a Boxed DynAsyncRead value
     // * and calling read on DynAsyncRead
     let mut box_dyn_async_read = DynAsyncRead::boxed(file);
-    _ = dbg!(call(&mut box_dyn_async_read).await);
+    dbg!(call(&mut box_dyn_async_read).await?);
+
+    Ok(())
 }
 
 #[dynosaur::dynosaur(DynAsyncRead)]

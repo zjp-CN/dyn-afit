@@ -264,31 +264,34 @@ impl<'dynosaur_struct> DynAsyncRead<'dynosaur_struct> {
 Note: this approach means
 * `AsyncRead` we defined is still static dispatchable only
 * there is a heap allocation cost when calling read on DynAsyncRead, which is the same as `#[async_trait]`
-  * in a sense, `#[async_trait]` is more recommended over this
+  * in a sense, `#[async_trait]` is more recommended over this if you only need dynamic dispatch
 
 ```rust
+// static dispatch: no boxing overhead due to RPITIT
+dbg!(file.read(&mut []).await?);
+
 // dynamic dispatch: with boxing overhead once (in calling read on DynAsyncRead)
 let dyn_async_read = DynAsyncRead::from_mut(&mut file);
-_ = dbg!(call(dyn_async_read).await);
+dbg!(call(dyn_async_read).await?);
 
 // dynamic dispatch: with boxing overhead twice in
 // * creating a Boxed DynAsyncRead value
 // * and calling read on DynAsyncRead
 let mut box_dyn_async_read = DynAsyncRead::boxed(file);
-_ = dbg!(call(&mut box_dyn_async_read).await);
+dbg!(call(&mut box_dyn_async_read).await?);
 ```
 
 ## Summary
 
 The code is in `examples` folder:
 
-| \# | file name                                      | is directly dispatchable | no head allocated return value | extra description                                               |
-|:--:|------------------------------------------------|:------------------------:|:------------------------------:|-----------------------------------------------------------------|
-|  1 | [`returns-box-trait-object.rs`]                |            ✅            |               ❌               | widely used; simple                                             |
-|  2 | [`returns-stack-future.rs`]                    |            ✅            |               ✅               | simple; fixed allocation size but heap allocation as a fallback |
-|  3 | [`returns-future-in-trait-with-supertrait.rs`] |            ❌            |               ✅               | used in `async-std`; the pattern is an inspiration              |
-|  4 | [`afit-with-supertrait.rs`]                    |            ❌            |               ✅               | takes the inspiration above with AFIT                           |
-|  5 | [`dynosaur.rs`]                                |            ❌            |               ❌               | promising idea and APIs to support referenced erased types      |
+| \# | file name                                      | is directly dispatchable | no heap allocated return Future | extra description                                                             |
+|:--:|------------------------------------------------|:------------------------:|:-------------------------------:|-------------------------------------------------------------------------------|
+|  1 | [`returns-box-trait-object.rs`]                |            ✅            |                ❌               | widely used; simple                                                           |
+|  2 | [`returns-stack-future.rs`]                    |            ✅            |                ✅               | simple; fixed allocation size but heap allocation as a fallback               |
+|  3 | [`returns-future-in-trait-with-supertrait.rs`] |            ❌            |                ✅               | used in `async-std`; the pattern is an inspiration                            |
+|  4 | [`afit-with-supertrait.rs`]                    |            ❌            |                ✅               | takes the inspiration above with AFIT                                         |
+|  5 | [`dynosaur.rs`]                                |            ❔            |                ❔               | provides two distinct Traits: dyn one has allocation cost, static one has not |
 
 [`returns-box-trait-object.rs`]: ./examples/ok-returns-box-trait-object.rs
 [`returns-stack-future.rs`]: ./examples/ok-returns-stack-future.rs
