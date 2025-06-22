@@ -1,0 +1,8 @@
+[package]
+name = "afidt-pin-init"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+pin-init = { git = "https://github.com/Rust-for-Linux/pin-init.git", rev = "a176e16" }
+pollster = "0.4.0"
