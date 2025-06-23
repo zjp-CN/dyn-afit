@@ -1,4 +1,4 @@
-//! This file demostrate another pin-init version that can be used on
+//! This file demostrates another pin-init version that can be used on
 //! stable Rust by avoiding Pointer Metadata APIs and reinventing trait objects.
 //!
 //! Original athuor is [@loichyan](https://github.com/loichyan).
@@ -300,10 +300,13 @@ async fn dynamic_dispatch<Item>(imp: &mut dyn DynAsync<Item = Item>, arg: String
     let layout = dbg!(foo_init.layout());
     let mut stack = [0u8; 64];
 
-    let start = &raw mut stack;
+    let start = &raw mut stack as *mut u8;
     let end = start.wrapping_add(stack.len());
     let slot = start.wrapping_add(start.align_offset(layout.align()));
     let slot_end = slot.wrapping_add(layout.size());
+
+    // let byte_offset = unsafe { end.byte_offset_from(start) };
+    // dbg!( start, end, byte_offset, slot, slot_end, stack.len(), layout.align(), layout.size());
     if slot >= start && slot_end <= end {
         println!("stack");
         unsafe { foo_init.init(NonNull::new_unchecked(slot).cast()).await }
