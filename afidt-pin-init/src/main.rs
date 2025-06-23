@@ -32,17 +32,19 @@ impl Async for B {
 }
 
 fn main() {
-    pollster::block_on(async {
-        let a = A {};
+    pollster::block_on(run())
+}
 
-        // static dispatch
-        a.foo().await;
+async fn run() {
+    let a = A {};
 
-        let ref_a: &dyn Async = &a;
-        dynamic_dispatch(ref_a).await;
+    // static dispatch
+    a.foo().await;
 
-        dynamic_dispatch(&B).await;
-    })
+    let ref_a: &dyn Async = &a;
+    dynamic_dispatch(ref_a).await;
+
+    dynamic_dispatch(&B).await;
 }
 
 const FUT_STACK_SIZE: usize = 64;
@@ -71,18 +73,17 @@ async fn dynamic_dispatch(ref_a: &dyn Async) {
             return;
         }
 
-        let (ptr_dyn_fut, pin_dyn_fut) = unsafe {
+        unsafe {
+            // get the pinned Future from stack
             let meta = dyn_foo.init(slot as *mut ()).unwrap();
             let ptr_dyn_fut: *mut dyn Future<Output = ()> = ptr::from_raw_parts_mut(slot, meta);
             let pin_dyn_fut = Pin::new_unchecked(&mut *ptr_dyn_fut);
-            (ptr_dyn_fut, pin_dyn_fut)
-        };
 
-        println!("Stack allocation. 🦀");
-        pin_dyn_fut.await;
+            // poll the future
+            println!("Stack allocation. 🦀");
+            pin_dyn_fut.await;
 
-        // drop the future
-        unsafe {
+            // drop the future
             ptr::drop_in_place(ptr_dyn_fut);
         }
     }
