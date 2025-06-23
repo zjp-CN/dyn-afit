@@ -55,7 +55,8 @@ async fn dynamic_dispatch(ref_a: &dyn Async) {
     } else {
         let mut stack = [0u8; FUT_STACK_SIZE];
 
-        let start = &mut stack as *mut _ as *mut u8;
+        // alignment adjustment
+        let start = stack.as_mut_ptr();
         let end = start.wrapping_add(FUT_STACK_SIZE);
         let slot = start.wrapping_add(start.align_offset(layout.align()));
         let slot_end = slot.wrapping_add(fut_size);
@@ -69,7 +70,7 @@ async fn dynamic_dispatch(ref_a: &dyn Async) {
 
         let pin_dyn_fut: Pin<&mut dyn Future<Output = ()>> = unsafe {
             let meta = dyn_foo.init(slot as *mut ()).unwrap();
-            let ptr_dyn_fut = ptr::from_raw_parts_mut(&mut stack, meta);
+            let ptr_dyn_fut = ptr::from_raw_parts_mut(slot, meta);
             Pin::new_unchecked(&mut *ptr_dyn_fut)
         };
 
