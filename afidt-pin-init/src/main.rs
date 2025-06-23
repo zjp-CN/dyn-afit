@@ -1,7 +1,10 @@
 #![feature(ptr_metadata)]
 
 use pin_init::{DynInPlaceInit, dyn_init};
-use std::{pin::Pin, ptr};
+use std::{
+    pin::{Pin, pin},
+    ptr,
+};
 
 trait Async {
     #[dyn_init]
@@ -53,7 +56,7 @@ async fn dynamic_dispatch(ref_a: &dyn Async) {
         println!("Heap allocation as the future is too large.");
         Box::into_pin(Box::dyn_init(dyn_foo)).await;
     } else {
-        let mut stack = [0u8; FUT_STACK_SIZE];
+        let mut stack = pin!([0u8; FUT_STACK_SIZE]);
 
         // alignment adjustment
         let start = stack.as_mut_ptr();
@@ -68,14 +71,20 @@ async fn dynamic_dispatch(ref_a: &dyn Async) {
             return;
         }
 
-        let pin_dyn_fut: Pin<&mut dyn Future<Output = ()>> = unsafe {
+        let (ptr_dyn_fut, pin_dyn_fut) = unsafe {
             let meta = dyn_foo.init(slot as *mut ()).unwrap();
-            let ptr_dyn_fut = ptr::from_raw_parts_mut(slot, meta);
-            Pin::new_unchecked(&mut *ptr_dyn_fut)
+            let ptr_dyn_fut: *mut dyn Future<Output = ()> = ptr::from_raw_parts_mut(slot, meta);
+            let pin_dyn_fut = Pin::new_unchecked(&mut *ptr_dyn_fut);
+            (ptr_dyn_fut, pin_dyn_fut)
         };
 
         println!("Stack allocation. 🦀");
         pin_dyn_fut.await;
+
+        // drop the future
+        unsafe {
+            ptr::drop_in_place(ptr_dyn_fut);
+        }
     }
 }
 
