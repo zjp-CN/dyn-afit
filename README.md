@@ -281,6 +281,43 @@ let mut box_dyn_async_read = DynAsyncRead::boxed(file);
 dbg!(call(&mut box_dyn_async_read).await?);
 ```
 
+### Solution: based on pin-init like APIs
+
+The caller chooses to put return futures to where.
+
+The core idea is to define another trait whose arguments are the same as those of static dispatched trait,
+while the return type is a callback to construct a future.
+
+As a result, caller must call an API to construct it, and then await the future.
+
+
+```rust
+async fn dynamic_dispatch(conn: &dyn DynUserCommunication) {
+    // allocate the future on heap
+    auth.communicator.send_sms("abc", "123").pin_boxed().await;
+
+    // allocate the future on stack
+    let stack = pin!(StackedBuf::<FUT_STACK_LEN>::UNINIT);
+    auth.communicator
+        .send_sms("abc", "123")
+        .pin_init(StackedBuf::new(stack))
+        .await;
+
+    // allocate the future on stack if small, or on heap if large
+    let mut stack = MaybeUninit::<[u8; 16]>::uninit();
+    let mut heap = Vec::<MaybeUninit<u8>>::new();
+    conn.send_sms("123-456-789", "7519")
+        .init2(&mut stack, &mut heap)
+        .await;
+}
+```
+
+* [dynify-loichyan](./dynify-loichyan): dynify is inspired by pin-init crate, but provides concise APIs and is on stable Rust
+* [afidt-pin-init](./afidt-pin-init): pin-init crate of Rust for Linux; its APIs are incomplete 
+
+[dynify-loichyan]: ./dynify-loichyan
+[afidt-pin-init]: ./afidt-pin-init
+
 ## Summary
 
 The code is in `examples` folder:
@@ -292,6 +329,7 @@ The code is in `examples` folder:
 |  3 | [`returns-future-in-trait-with-supertrait.rs`] |            ❌            |                ✅               | used in `async-std`; the pattern is an inspiration                            |
 |  4 | [`afit-with-supertrait.rs`]                    |            ❌            |                ✅               | takes the inspiration above with AFIT                                         |
 |  5 | [`dynosaur.rs`]                                |            ❔            |                ❔               | provides two distinct Traits: dyn one has allocation cost, static one has not |
+|  6 | [dynify-loichyan] / [afidt-pin-init]           |            ❔            |                ✅               | provides two distinct Traits: dyn one provides flexible allocation strategies |
 
 [`returns-box-trait-object.rs`]: ./examples/ok-returns-box-trait-object.rs
 [`returns-stack-future.rs`]: ./examples/ok-returns-stack-future.rs
