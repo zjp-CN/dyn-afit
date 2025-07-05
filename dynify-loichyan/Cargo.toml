@@ -1,0 +1,11 @@
+[package]
+name = "dyn-async-trait"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dynify = "0.0.1"
+pollster = "0.4.0"
+
+[patch.crates-io]
+dynify = { git = "https://github.com/loichyan/dynify" }
