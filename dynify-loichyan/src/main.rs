@@ -41,7 +41,7 @@ async fn run() {
     };
     auth.communicator.send_sms("abc", "123").pin_boxed().await;
 
-    let stack = pin!(StackedBuf::<FUT_STACK_LEN>::new_uninit_buf());
+    let stack = pin!(StackedBuf::<FUT_STACK_LEN>::UNINIT);
     auth.communicator
         .send_sms("abc", "123")
         .pin_init(StackedBuf::new(stack))
@@ -53,9 +53,7 @@ const FUT_STACK_LEN: usize = 128;
 pub struct StackedBuf<'a, const LEN: usize>(Pin<&'a mut [MaybeUninit<u8>; LEN]>);
 
 impl<const LEN: usize> StackedBuf<'_, LEN> {
-    pub fn new_uninit_buf() -> [MaybeUninit<u8>; LEN] {
-        [MaybeUninit::uninit(); LEN]
-    }
+    const UNINIT: [MaybeUninit<u8>; LEN] = [MaybeUninit::uninit(); LEN];
 
     pub fn new(val: Pin<&'_ mut [MaybeUninit<u8>; LEN]>) -> StackedBuf<'_, LEN> {
         StackedBuf(val)
